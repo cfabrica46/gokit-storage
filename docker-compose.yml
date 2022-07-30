@@ -1,0 +1,34 @@
+version: "3.7"
+services:
+    postgres:
+        image: postgres
+        environment:
+            - POSTGRES_USER=cfabrica46
+            - POSTGRES_PASSWORD=01234
+            - POSTGRES_DB=go_crud
+        ports:
+            - "5433:5432"
+        volumes:
+            - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+    db-app:
+        build: .
+        restart: always
+        environment:
+            - PORT=7070
+            - DB_HOST=postgres
+            - DB_PORT=5432
+            - DB_USERNAME=cfabrica46
+            - DB_PASSWORD=01234
+            - DB_NAME=go_crud
+            - DB_SSLMODE=disable
+            - DB_DRIVER=postgres
+        depends_on:
+            - postgres
+        ports:
+            - "7070:7070"
+
+networks:
+    default:
+        name: gokit-crud_network
+        driver: bridge
