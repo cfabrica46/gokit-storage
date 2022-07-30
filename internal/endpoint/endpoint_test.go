@@ -1,9 +1,13 @@
-package service_test
+package endpoint_test
 
 import (
 	"context"
-	"storage/service"
 	"testing"
+
+	myendpoint "storage/internal/endpoint"
+	"storage/internal/entity"
+	"storage/internal/entity/mock"
+	"storage/internal/service"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
@@ -24,32 +28,33 @@ func TestMakeGetAllUsersEndpoint(t *testing.T) {
 		outID                              int
 	}{
 		{
-			name:        nameNoError,
-			outID:       idTest,
-			outUsername: usernameTest,
-			outEmail:    emailTest,
-			inRequest:   service.EmptyRequest{},
+			name:        mock.NameNoError,
+			outID:       mock.IDTest,
+			outUsername: mock.UsernameTest,
+			outEmail:    mock.EmailTest,
+			inRequest:   entity.EmptyRequest{},
 			outErr:      "",
 		},
 		{
-			name:        nameErrorDBClosed,
-			outID:       idTest,
-			outUsername: usernameTest,
-			outEmail:    emailTest,
-			inRequest:   service.EmptyRequest{},
-			outErr:      errDatabaseClosed,
+			name:        mock.NameErrorDBClosed,
+			outID:       mock.IDTest,
+			outUsername: mock.UsernameTest,
+			outEmail:    mock.EmailTest,
+			inRequest:   entity.EmptyRequest{},
+			outErr:      mock.ErrDatabaseClosed,
 		},
 	} {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			db, mock, err := sqlmock.New()
+
+			db, dbMock, err := sqlmock.New()
 			if err != nil {
 				assert.Error(t, err)
 			}
 			defer db.Close()
 
-			if tt.name == nameErrorDBClosed {
+			if tt.name == mock.NameErrorDBClosed {
 				db.Close()
 			}
 
@@ -66,19 +71,19 @@ func TestMakeGetAllUsersEndpoint(t *testing.T) {
 				tt.outEmail,
 			)
 
-			mock.ExpectQuery("^SELECT id, username, email FROM users").WillReturnRows(rows)
+			dbMock.ExpectQuery("^SELECT id, username, email FROM users").WillReturnRows(rows)
 
-			r, err := service.MakeGetAllUsersEndpoint(svc)(context.TODO(), tt.inRequest)
+			r, err := myendpoint.MakeGetAllUsersEndpoint(svc)(context.TODO(), tt.inRequest)
 			if err != nil {
 				assert.Error(t, err)
 			}
 
-			result, ok := r.(service.UsersErrorResponse)
+			result, ok := r.(entity.UsersErrorResponse)
 			if !ok {
 				assert.Fail(t, "response is not of the type indicated")
 			}
 
-			if tt.name == nameNoError {
+			if tt.name == mock.NameNoError {
 				assert.Empty(t, result.Err)
 			} else {
 				assert.Contains(t, result.Err, tt.outErr)
@@ -98,29 +103,29 @@ func TestMakeGetUserByIDEndpoint(t *testing.T) {
 		inID                            int
 	}{
 		{
-			name:       nameNoError,
-			inID:       idTest,
-			inUsername: usernameTest,
-			inPassword: passwordTest,
-			inEmail:    emailTest,
-			inRequest:  service.IDRequest{ID: idTest},
+			name:       mock.NameNoError,
+			inID:       mock.IDTest,
+			inUsername: mock.UsernameTest,
+			inPassword: mock.PasswordTest,
+			inEmail:    mock.EmailTest,
+			inRequest:  entity.IDRequest{ID: mock.IDTest},
 			outErr:     "",
 		},
 		{
-			name: nameErrorRequest,
+			name: mock.NameErrorRequest,
 			inRequest: incorrectRequest{
 				incorrect: true,
 			},
 			outErr: "isn't of type",
 		},
 		{
-			name:       nameErrorDBClosed,
-			inID:       idTest,
-			inUsername: usernameTest,
-			inPassword: passwordTest,
-			inEmail:    emailTest,
-			inRequest:  service.IDRequest{},
-			outErr:     errDatabaseClosed,
+			name:       mock.NameErrorDBClosed,
+			inID:       mock.IDTest,
+			inUsername: mock.UsernameTest,
+			inPassword: mock.PasswordTest,
+			inEmail:    mock.EmailTest,
+			inRequest:  entity.IDRequest{},
+			outErr:     mock.ErrDatabaseClosed,
 		},
 	} {
 		tt := tt
@@ -129,13 +134,13 @@ func TestMakeGetUserByIDEndpoint(t *testing.T) {
 
 			var resultErr string
 
-			db, mock, err := sqlmock.New()
+			db, dbMock, err := sqlmock.New()
 			if err != nil {
 				assert.Error(t, err)
 			}
 			defer db.Close()
 
-			if tt.name == nameErrorDBClosed {
+			if tt.name == mock.NameErrorDBClosed {
 				db.Close()
 			}
 
@@ -154,17 +159,17 @@ func TestMakeGetUserByIDEndpoint(t *testing.T) {
 				tt.inEmail,
 			)
 
-			mock.ExpectQuery("^SELECT id, username, password, email FROM users").
+			dbMock.ExpectQuery("^SELECT id, username, password, email FROM users").
 				WithArgs(tt.inID).WillReturnRows(rows)
 
-			r, err := service.MakeGetUserByIDEndpoint(svc)(context.TODO(), tt.inRequest)
+			r, err := myendpoint.MakeGetUserByIDEndpoint(svc)(context.TODO(), tt.inRequest)
 			if err != nil {
 				resultErr = err.Error()
 			}
 
-			result, ok := r.(service.UserErrorResponse)
+			result, ok := r.(entity.UserErrorResponse)
 			if !ok {
-				if tt.name != nameErrorRequest {
+				if tt.name != mock.NameErrorRequest {
 					assert.Fail(t, "response is not of the type indicated")
 				}
 			}
@@ -173,7 +178,7 @@ func TestMakeGetUserByIDEndpoint(t *testing.T) {
 				resultErr = result.Err
 			}
 
-			if tt.name == nameNoError {
+			if tt.name == mock.NameNoError {
 				assert.Empty(t, result.Err)
 			} else {
 				assert.Contains(t, resultErr, tt.outErr)
@@ -193,32 +198,32 @@ func TestMakeGetUserByUsernameAndPasswordEndpoint(t *testing.T) {
 		inID                            int
 	}{
 		{
-			name:       nameNoError,
-			inID:       idTest,
-			inUsername: usernameTest,
-			inPassword: passwordTest,
-			inEmail:    emailTest,
-			inRequest: service.UsernamePasswordRequest{
-				Username: usernameTest,
-				Password: passwordTest,
+			name:       mock.NameNoError,
+			inID:       mock.IDTest,
+			inUsername: mock.UsernameTest,
+			inPassword: mock.PasswordTest,
+			inEmail:    mock.EmailTest,
+			inRequest: entity.UsernamePasswordRequest{
+				Username: mock.UsernameTest,
+				Password: mock.PasswordTest,
 			},
 			outErr: "",
 		},
 		{
-			name: nameErrorRequest,
+			name: mock.NameErrorRequest,
 			inRequest: incorrectRequest{
 				incorrect: true,
 			},
 			outErr: "isn't of type",
 		},
 		{
-			name:       nameErrorDBClosed,
-			inID:       idTest,
-			inUsername: usernameTest,
-			inPassword: passwordTest,
-			inEmail:    emailTest,
-			inRequest:  service.UsernamePasswordRequest{},
-			outErr:     errDatabaseClosed,
+			name:       mock.NameErrorDBClosed,
+			inID:       mock.IDTest,
+			inUsername: mock.UsernameTest,
+			inPassword: mock.PasswordTest,
+			inEmail:    mock.EmailTest,
+			inRequest:  entity.UsernamePasswordRequest{},
+			outErr:     mock.ErrDatabaseClosed,
 		},
 	} {
 		tt := tt
@@ -227,13 +232,13 @@ func TestMakeGetUserByUsernameAndPasswordEndpoint(t *testing.T) {
 
 			var resultErr string
 
-			db, mock, err := sqlmock.New()
+			db, dbMock, err := sqlmock.New()
 			if err != nil {
 				assert.Error(t, err)
 			}
 			defer db.Close()
 
-			if tt.name == nameErrorDBClosed {
+			if tt.name == mock.NameErrorDBClosed {
 				db.Close()
 			}
 
@@ -252,10 +257,10 @@ func TestMakeGetUserByUsernameAndPasswordEndpoint(t *testing.T) {
 				tt.inEmail,
 			)
 
-			mock.ExpectQuery("^SELECT id, username, password, email FROM users").
+			dbMock.ExpectQuery("^SELECT id, username, password, email FROM users").
 				WithArgs(tt.inUsername, tt.inPassword).WillReturnRows(rows)
 
-			r, err := service.MakeGetUserByUsernameAndPasswordEndpoint(svc)(
+			r, err := myendpoint.MakeGetUserByUsernameAndPasswordEndpoint(svc)(
 				context.TODO(),
 				tt.inRequest,
 			)
@@ -263,9 +268,9 @@ func TestMakeGetUserByUsernameAndPasswordEndpoint(t *testing.T) {
 				resultErr = err.Error()
 			}
 
-			result, ok := r.(service.UserErrorResponse)
+			result, ok := r.(entity.UserErrorResponse)
 			if !ok {
-				if tt.name != nameErrorRequest {
+				if tt.name != mock.NameErrorRequest {
 					assert.Fail(t, "response is not of the type indicated")
 				}
 			}
@@ -274,7 +279,7 @@ func TestMakeGetUserByUsernameAndPasswordEndpoint(t *testing.T) {
 				resultErr = result.Err
 			}
 
-			if tt.name == nameNoError {
+			if tt.name == mock.NameNoError {
 				assert.Empty(t, result.Err)
 			} else {
 				assert.Contains(t, resultErr, tt.outErr)
@@ -294,27 +299,27 @@ func TestGetIDByUsernameEndpoint(t *testing.T) {
 		inID       int
 	}{
 		{
-			name:       nameNoError,
-			inID:       idTest,
-			inUsername: usernameTest,
-			inRequest: service.UsernameRequest{
-				Username: usernameTest,
+			name:       mock.NameNoError,
+			inID:       mock.IDTest,
+			inUsername: mock.UsernameTest,
+			inRequest: entity.UsernameRequest{
+				Username: mock.UsernameTest,
 			},
 			outErr: "",
 		},
 		{
-			name: nameErrorRequest,
+			name: mock.NameErrorRequest,
 			inRequest: incorrectRequest{
 				incorrect: true,
 			},
 			outErr: "isn't of type",
 		},
 		{
-			name:       nameErrorDBClosed,
-			inID:       idTest,
-			inUsername: usernameTest,
-			inRequest:  service.UsernameRequest{},
-			outErr:     errDatabaseClosed,
+			name:       mock.NameErrorDBClosed,
+			inID:       mock.IDTest,
+			inUsername: mock.UsernameTest,
+			inRequest:  entity.UsernameRequest{},
+			outErr:     mock.ErrDatabaseClosed,
 		},
 	} {
 		tt := tt
@@ -323,13 +328,13 @@ func TestGetIDByUsernameEndpoint(t *testing.T) {
 
 			var resultErr string
 
-			db, mock, err := sqlmock.New()
+			db, dbMock, err := sqlmock.New()
 			if err != nil {
 				assert.Error(t, err)
 			}
 			defer db.Close()
 
-			if tt.name == nameErrorDBClosed {
+			if tt.name == mock.NameErrorDBClosed {
 				db.Close()
 			}
 
@@ -337,16 +342,16 @@ func TestGetIDByUsernameEndpoint(t *testing.T) {
 
 			rows := sqlmock.NewRows([]string{"id"}).AddRow(tt.inID)
 
-			mock.ExpectQuery("^SELECT id FROM users").WithArgs(tt.inUsername).WillReturnRows(rows)
+			dbMock.ExpectQuery("^SELECT id FROM users").WithArgs(tt.inUsername).WillReturnRows(rows)
 
-			r, err := service.MakeGetIDByUsernameEndpoint(svc)(context.TODO(), tt.inRequest)
+			r, err := myendpoint.MakeGetIDByUsernameEndpoint(svc)(context.TODO(), tt.inRequest)
 			if err != nil {
 				resultErr = err.Error()
 			}
 
-			result, ok := r.(service.IDErrorResponse)
+			result, ok := r.(entity.IDErrorResponse)
 			if !ok {
-				if tt.name != nameErrorRequest {
+				if tt.name != mock.NameErrorRequest {
 					assert.Fail(t, "response is not of the type indicated")
 				}
 			}
@@ -355,7 +360,7 @@ func TestGetIDByUsernameEndpoint(t *testing.T) {
 				resultErr = result.Err
 			}
 
-			if tt.name == nameNoError {
+			if tt.name == mock.NameNoError {
 				assert.Empty(t, result.Err)
 			} else {
 				assert.Contains(t, resultErr, tt.outErr)
@@ -374,31 +379,31 @@ func TestMakeInsertUserEndpoint(t *testing.T) {
 		outErr                          string
 	}{
 		{
-			name:       nameNoError,
-			inUsername: usernameTest,
-			inPassword: passwordTest,
-			inEmail:    emailTest,
-			inRequest: service.UsernamePasswordEmailRequest{
-				Username: usernameTest,
-				Password: passwordTest,
-				Email:    emailTest,
+			name:       mock.NameNoError,
+			inUsername: mock.UsernameTest,
+			inPassword: mock.PasswordTest,
+			inEmail:    mock.EmailTest,
+			inRequest: entity.UsernamePasswordEmailRequest{
+				Username: mock.UsernameTest,
+				Password: mock.PasswordTest,
+				Email:    mock.EmailTest,
 			},
 			outErr: "",
 		},
 		{
-			name: nameErrorRequest,
+			name: mock.NameErrorRequest,
 			inRequest: incorrectRequest{
 				incorrect: true,
 			},
 			outErr: "isn't of type",
 		},
 		{
-			name:       nameErrorDBClosed,
-			inUsername: usernameTest,
-			inPassword: passwordTest,
-			inEmail:    emailTest,
-			inRequest:  service.UsernamePasswordEmailRequest{},
-			outErr:     errDatabaseClosed,
+			name:       mock.NameErrorDBClosed,
+			inUsername: mock.UsernameTest,
+			inPassword: mock.PasswordTest,
+			inEmail:    mock.EmailTest,
+			inRequest:  entity.UsernamePasswordEmailRequest{},
+			outErr:     mock.ErrDatabaseClosed,
 		},
 	} {
 		tt := tt
@@ -407,33 +412,33 @@ func TestMakeInsertUserEndpoint(t *testing.T) {
 
 			var resultErr string
 
-			db, mock, err := sqlmock.New()
+			db, dbMock, err := sqlmock.New()
 			if err != nil {
 				assert.Error(t, err)
 			}
 			defer db.Close()
 
-			if tt.name == nameErrorDBClosed {
+			if tt.name == mock.NameErrorDBClosed {
 				db.Close()
 			}
 
 			svc := service.GetService(db)
 
-			mock.ExpectExec("^INSERT INTO users").
+			dbMock.ExpectExec("^INSERT INTO users").
 				WithArgs(
 					tt.inUsername,
 					tt.inPassword,
 					tt.inEmail,
 				).WillReturnResult(sqlmock.NewResult(0, 1))
 
-			r, err := service.MakeInsertUserEndpoint(svc)(context.TODO(), tt.inRequest)
+			r, err := myendpoint.MakeInsertUserEndpoint(svc)(context.TODO(), tt.inRequest)
 			if err != nil {
 				resultErr = err.Error()
 			}
 
-			result, ok := r.(service.ErrorResponse)
+			result, ok := r.(entity.ErrorResponse)
 			if !ok {
-				if tt.name != nameErrorRequest {
+				if tt.name != mock.NameErrorRequest {
 					assert.Fail(t, "response is not of the type indicated")
 				}
 			}
@@ -442,7 +447,7 @@ func TestMakeInsertUserEndpoint(t *testing.T) {
 				resultErr = result.Err
 			}
 
-			if tt.name == nameNoError {
+			if tt.name == mock.NameNoError {
 				assert.Empty(t, result.Err)
 			} else {
 				assert.Contains(t, resultErr, tt.outErr)
@@ -461,25 +466,25 @@ func TestMakeDeleteUserEndpoint(t *testing.T) {
 		inID      int
 	}{
 		{
-			name: nameNoError,
-			inID: idTest,
-			inRequest: service.IDRequest{
-				ID: idTest,
+			name: mock.NameNoError,
+			inID: mock.IDTest,
+			inRequest: entity.IDRequest{
+				ID: mock.IDTest,
 			},
 			outErr: "",
 		},
 		{
-			name: nameErrorRequest,
+			name: mock.NameErrorRequest,
 			inRequest: incorrectRequest{
 				incorrect: true,
 			},
 			outErr: "isn't of type",
 		},
 		{
-			name:      nameErrorDBClosed,
-			inID:      idTest,
-			inRequest: service.IDRequest{},
-			outErr:    errDatabaseClosed,
+			name:      mock.NameErrorDBClosed,
+			inID:      mock.IDTest,
+			inRequest: entity.IDRequest{},
+			outErr:    mock.ErrDatabaseClosed,
 		},
 	} {
 		tt := tt
@@ -488,29 +493,29 @@ func TestMakeDeleteUserEndpoint(t *testing.T) {
 
 			var resultErr string
 
-			db, mock, err := sqlmock.New()
+			db, dbMock, err := sqlmock.New()
 			if err != nil {
 				assert.Error(t, err)
 			}
 			defer db.Close()
 
-			if tt.name == nameErrorDBClosed {
+			if tt.name == mock.NameErrorDBClosed {
 				db.Close()
 			}
 
 			svc := service.GetService(db)
 
-			mock.ExpectExec("^DELETE FROM users").
+			dbMock.ExpectExec("^DELETE FROM users").
 				WithArgs(tt.inID).WillReturnResult(sqlmock.NewResult(0, 1))
 
-			r, err := service.MakeDeleteUserEndpoint(svc)(context.TODO(), tt.inRequest)
+			r, err := myendpoint.MakeDeleteUserEndpoint(svc)(context.TODO(), tt.inRequest)
 			if err != nil {
 				resultErr = err.Error()
 			}
 
-			result, ok := r.(service.RowsErrorResponse)
+			result, ok := r.(entity.RowsErrorResponse)
 			if !ok {
-				if tt.name != nameErrorRequest {
+				if tt.name != mock.NameErrorRequest {
 					assert.Fail(t, "response is not of the type indicated")
 				}
 			}
@@ -519,7 +524,7 @@ func TestMakeDeleteUserEndpoint(t *testing.T) {
 				resultErr = result.Err
 			}
 
-			if tt.name == nameNoError {
+			if tt.name == mock.NameNoError {
 				assert.Empty(t, result.Err)
 			} else {
 				assert.Contains(t, resultErr, tt.outErr)

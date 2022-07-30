@@ -1,4 +1,4 @@
-package service
+package entity
 
 // User ...
 type User struct {

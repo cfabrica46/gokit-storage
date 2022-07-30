@@ -6,7 +6,11 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"storage/service"
+
+	"storage/internal/endpoint"
+	"storage/internal/entity"
+	"storage/internal/service"
+	"storage/internal/transport"
 
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
@@ -56,39 +60,39 @@ func runServer(port string, db *sql.DB) {
 	svc := service.GetService(db)
 
 	getAllUsersHandler := httptransport.NewServer(
-		service.MakeGetAllUsersEndpoint(svc),
-		service.DecodeRequestWithoutBody(),
-		service.EncodeResponse,
+		endpoint.MakeGetAllUsersEndpoint(svc),
+		transport.DecodeRequestWithoutBody(),
+		transport.EncodeResponse,
 	)
 
 	getUserByIDHandler := httptransport.NewServer(
-		service.MakeGetUserByIDEndpoint(svc),
-		service.DecodeRequest(service.IDRequest{}),
-		service.EncodeResponse,
+		endpoint.MakeGetUserByIDEndpoint(svc),
+		transport.DecodeRequest(entity.IDRequest{}),
+		transport.EncodeResponse,
 	)
 
 	getUserByUsernameAndPasswordHandler := httptransport.NewServer(
-		service.MakeGetUserByUsernameAndPasswordEndpoint(svc),
-		service.DecodeRequest(service.UsernamePasswordRequest{}),
-		service.EncodeResponse,
+		endpoint.MakeGetUserByUsernameAndPasswordEndpoint(svc),
+		transport.DecodeRequest(entity.UsernamePasswordRequest{}),
+		transport.EncodeResponse,
 	)
 
 	getIDByUsernameHandler := httptransport.NewServer(
-		service.MakeGetIDByUsernameEndpoint(svc),
-		service.DecodeRequest(service.UsernameRequest{}),
-		service.EncodeResponse,
+		endpoint.MakeGetIDByUsernameEndpoint(svc),
+		transport.DecodeRequest(entity.UsernameRequest{}),
+		transport.EncodeResponse,
 	)
 
 	insertUserHandler := httptransport.NewServer(
-		service.MakeInsertUserEndpoint(svc),
-		service.DecodeRequest(service.UsernamePasswordEmailRequest{}),
-		service.EncodeResponse,
+		endpoint.MakeInsertUserEndpoint(svc),
+		transport.DecodeRequest(entity.UsernamePasswordEmailRequest{}),
+		transport.EncodeResponse,
 	)
 
 	deleteUserHandler := httptransport.NewServer(
-		service.MakeDeleteUserEndpoint(svc),
-		service.DecodeRequest(service.IDRequest{}),
-		service.EncodeResponse,
+		endpoint.MakeDeleteUserEndpoint(svc),
+		transport.DecodeRequest(entity.IDRequest{}),
+		transport.EncodeResponse,
 	)
 
 	router := mux.NewRouter()

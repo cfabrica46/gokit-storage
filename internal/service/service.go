@@ -4,12 +4,14 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+
+	"storage/internal/entity"
 )
 
-type serviceInterface interface {
-	GetAllUsers() ([]User, error)
-	GetUserByID(int) (User, error)
-	GetUserByUsernameAndPassword(string, string) (User, error)
+type Interface interface {
+	GetAllUsers() ([]entity.User, error)
+	GetUserByID(int) (entity.User, error)
+	GetUserByUsernameAndPassword(string, string) (entity.User, error)
 	GetIDByUsername(string) (int, error)
 	InsertUser(string, string, string) error
 	DeleteUser(int) (int, error)
@@ -26,7 +28,7 @@ func GetService(db *sql.DB) *Service {
 }
 
 // GetAllUsers ...
-func (s Service) GetAllUsers() (users []User, err error) {
+func (s Service) GetAllUsers() (users []entity.User, err error) {
 	rows, err := s.db.Query("SELECT id, username, password, email FROM users")
 	if err != nil {
 		return nil, fmt.Errorf("uwu error to get all users: %w", err)
@@ -34,7 +36,7 @@ func (s Service) GetAllUsers() (users []User, err error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var userBeta User
+		var userBeta entity.User
 
 		err = rows.Scan(&userBeta.ID, &userBeta.Username, &userBeta.Password, &userBeta.Email)
 		if err != nil {
@@ -52,23 +54,23 @@ func (s Service) GetAllUsers() (users []User, err error) {
 }
 
 // GetUserByID ...
-func (s Service) GetUserByID(id int) (user User, err error) {
+func (s Service) GetUserByID(id int) (user entity.User, err error) {
 	row := s.db.QueryRow("SELECT id, username, password, email FROM users WHERE id = $1", id)
 
 	err = row.Scan(&user.ID, &user.Username, &user.Password, &user.Email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return User{}, nil
+			return entity.User{}, nil
 		}
 
-		return User{}, fmt.Errorf("error to get user by ID: %w", err)
+		return entity.User{}, fmt.Errorf("error to get user by ID: %w", err)
 	}
 
 	return user, nil
 }
 
 // GetUserByUsernameAndPassword ...
-func (s Service) GetUserByUsernameAndPassword(username, password string) (user User, err error) {
+func (s Service) GetUserByUsernameAndPassword(username, password string) (user entity.User, err error) {
 	row := s.db.QueryRow(
 		"SELECT id, username, password, email FROM users WHERE username = $1 AND password = $2",
 		username,
@@ -78,10 +80,10 @@ func (s Service) GetUserByUsernameAndPassword(username, password string) (user U
 	err = row.Scan(&user.ID, &user.Username, &user.Password, &user.Email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return User{}, nil
+			return entity.User{}, nil
 		}
 
-		return User{}, fmt.Errorf("error to get user by username and password: %w", err)
+		return entity.User{}, fmt.Errorf("error to get user by username and password: %w", err)
 	}
 
 	return user, nil

@@ -1,4 +1,4 @@
-package service
+package transport
 
 import (
 	"context"
@@ -6,23 +6,25 @@ import (
 	"fmt"
 	"net/http"
 
+	"storage/internal/entity"
+
 	httptransport "github.com/go-kit/kit/transport/http"
 )
 
 // DecodeRequestWithoutBody ...
 func DecodeRequestWithoutBody() httptransport.DecodeRequestFunc {
 	return func(_ context.Context, _ *http.Request) (any, error) {
-		var request EmptyRequest
+		var request entity.EmptyRequest
 
 		return request, nil
 	}
 }
 
 // DecodeRequest ...
-func DecodeRequest[req IDRequest |
-	UsernamePasswordRequest |
-	UsernameRequest |
-	UsernamePasswordEmailRequest](request req,
+func DecodeRequest[req entity.IDRequest |
+	entity.UsernamePasswordRequest |
+	entity.UsernameRequest |
+	entity.UsernamePasswordEmailRequest](request req,
 ) httptransport.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (any, error) {
 		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
