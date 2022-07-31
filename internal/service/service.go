@@ -8,7 +8,7 @@ import (
 	"storage/internal/entity"
 )
 
-type Interface interface {
+type Service interface {
 	GetAllUsers() ([]entity.User, error)
 	GetUserByID(int) (entity.User, error)
 	GetUserByUsernameAndPassword(string, string) (entity.User, error)
@@ -17,18 +17,18 @@ type Interface interface {
 	DeleteUser(int) (int, error)
 }
 
-// Service ...
-type Service struct {
+// service ...
+type service struct {
 	db *sql.DB
 }
 
 // GetService ...
-func GetService(db *sql.DB) *Service {
-	return &Service{db: db}
+func GetService(db *sql.DB) *service {
+	return &service{db: db}
 }
 
 // GetAllUsers ...
-func (s Service) GetAllUsers() (users []entity.User, err error) {
+func (s service) GetAllUsers() (users []entity.User, err error) {
 	rows, err := s.db.Query("SELECT id, username, password, email FROM users")
 	if err != nil {
 		return nil, fmt.Errorf("uwu error to get all users: %w", err)
@@ -54,7 +54,7 @@ func (s Service) GetAllUsers() (users []entity.User, err error) {
 }
 
 // GetUserByID ...
-func (s Service) GetUserByID(id int) (user entity.User, err error) {
+func (s service) GetUserByID(id int) (user entity.User, err error) {
 	row := s.db.QueryRow("SELECT id, username, password, email FROM users WHERE id = $1", id)
 
 	err = row.Scan(&user.ID, &user.Username, &user.Password, &user.Email)
@@ -70,7 +70,7 @@ func (s Service) GetUserByID(id int) (user entity.User, err error) {
 }
 
 // GetUserByUsernameAndPassword ...
-func (s Service) GetUserByUsernameAndPassword(username, password string) (user entity.User, err error) {
+func (s service) GetUserByUsernameAndPassword(username, password string) (user entity.User, err error) {
 	row := s.db.QueryRow(
 		"SELECT id, username, password, email FROM users WHERE username = $1 AND password = $2",
 		username,
@@ -90,7 +90,7 @@ func (s Service) GetUserByUsernameAndPassword(username, password string) (user e
 }
 
 // GetIDByUsername ...
-func (s Service) GetIDByUsername(username string) (id int, err error) {
+func (s service) GetIDByUsername(username string) (id int, err error) {
 	row := s.db.QueryRow("SELECT id FROM users WHERE username = $1", username)
 
 	err = row.Scan(&id)
@@ -106,7 +106,7 @@ func (s Service) GetIDByUsername(username string) (id int, err error) {
 }
 
 // InsertUser ...
-func (s *Service) InsertUser(username, password, email string) (err error) {
+func (s *service) InsertUser(username, password, email string) (err error) {
 	_, err = s.db.Exec(
 		"INSERT INTO users(username, password, email) VALUES ($1,$2,$3)",
 		username,
@@ -121,7 +121,7 @@ func (s *Service) InsertUser(username, password, email string) (err error) {
 }
 
 // DeleteUser ...
-func (s *Service) DeleteUser(id int) (rowsAffected int, err error) {
+func (s *service) DeleteUser(id int) (rowsAffected int, err error) {
 	r, err := s.db.Exec("DELETE FROM users WHERE id = $1", id)
 	if err != nil {
 		return 0, fmt.Errorf("error to delete user: %w", err)

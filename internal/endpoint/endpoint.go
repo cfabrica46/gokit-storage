@@ -16,7 +16,7 @@ import (
 var ErrRequest = errors.New("error to request")
 
 // MakeGetAllUsersEndpoint ...
-func MakeGetAllUsersEndpoint(svc service.Interface) endpoint.Endpoint {
+func MakeGetAllUsersEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(_ context.Context, _ any) (any, error) {
 		var errMessage string
 
@@ -30,7 +30,7 @@ func MakeGetAllUsersEndpoint(svc service.Interface) endpoint.Endpoint {
 }
 
 // MakeGetUserByIDEndpoint ...
-func MakeGetUserByIDEndpoint(svc service.Interface) endpoint.Endpoint {
+func MakeGetUserByIDEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(_ context.Context, request any) (any, error) {
 		var errMessage string
 
@@ -49,7 +49,7 @@ func MakeGetUserByIDEndpoint(svc service.Interface) endpoint.Endpoint {
 }
 
 // MakeGetUserByUsernameAndPasswordEndpoint ...
-func MakeGetUserByUsernameAndPasswordEndpoint(svc service.Interface) endpoint.Endpoint {
+func MakeGetUserByUsernameAndPasswordEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(_ context.Context, request any) (any, error) {
 		var errMessage string
 
@@ -70,7 +70,7 @@ func MakeGetUserByUsernameAndPasswordEndpoint(svc service.Interface) endpoint.En
 }
 
 // MakeGetIDByUsernameEndpoint ...
-func MakeGetIDByUsernameEndpoint(svc service.Interface) endpoint.Endpoint {
+func MakeGetIDByUsernameEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(_ context.Context, request any) (any, error) {
 		var errMessage string
 
@@ -89,7 +89,7 @@ func MakeGetIDByUsernameEndpoint(svc service.Interface) endpoint.Endpoint {
 }
 
 // MakeInsertUserEndpoint ...
-func MakeInsertUserEndpoint(svc service.Interface) endpoint.Endpoint {
+func MakeInsertUserEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(_ context.Context, request any) (any, error) {
 		var errMessage string
 
@@ -110,7 +110,7 @@ func MakeInsertUserEndpoint(svc service.Interface) endpoint.Endpoint {
 }
 
 // MakeDeleteUserEndpoint ...
-func MakeDeleteUserEndpoint(svc service.Interface) endpoint.Endpoint {
+func MakeDeleteUserEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(_ context.Context, request any) (any, error) {
 		var errMessage string
 
