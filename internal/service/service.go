@@ -29,16 +29,16 @@ func GetService(db *sql.DB) *service {
 
 // GetAllUsers ...
 func (s service) GetAllUsers() (users []entity.User, err error) {
-	rows, err := s.db.Query("SELECT id, username, password, email FROM users")
+	rows, err := s.db.Query("SELECT id, username, email FROM users")
 	if err != nil {
-		return nil, fmt.Errorf("uwu error to get all users: %w", err)
+		return nil, fmt.Errorf("error to get all users: %w", err)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var userBeta entity.User
 
-		err = rows.Scan(&userBeta.ID, &userBeta.Username, &userBeta.Password, &userBeta.Email)
+		err = rows.Scan(&userBeta.ID, &userBeta.Username, &userBeta.Email)
 		if err != nil {
 			return nil, fmt.Errorf("error to get all users: %w", err)
 		}

@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	myendpoint "storage/internal/endpoint"
+	"storage/internal/endpoint"
 	"storage/internal/entity"
 	"storage/internal/entity/mock"
 	"storage/internal/service"
@@ -73,7 +73,7 @@ func TestMakeGetAllUsersEndpoint(t *testing.T) {
 
 			dbMock.ExpectQuery("^SELECT id, username, email FROM users").WillReturnRows(rows)
 
-			r, err := myendpoint.MakeGetAllUsersEndpoint(svc)(context.TODO(), tt.inRequest)
+			r, err := endpoint.MakeGetAllUsersEndpoint(svc)(context.TODO(), tt.inRequest)
 			if err != nil {
 				assert.Error(t, err)
 			}
@@ -162,7 +162,7 @@ func TestMakeGetUserByIDEndpoint(t *testing.T) {
 			dbMock.ExpectQuery("^SELECT id, username, password, email FROM users").
 				WithArgs(tt.inID).WillReturnRows(rows)
 
-			r, err := myendpoint.MakeGetUserByIDEndpoint(svc)(context.TODO(), tt.inRequest)
+			r, err := endpoint.MakeGetUserByIDEndpoint(svc)(context.TODO(), tt.inRequest)
 			if err != nil {
 				resultErr = err.Error()
 			}
@@ -232,6 +232,8 @@ func TestMakeGetUserByUsernameAndPasswordEndpoint(t *testing.T) {
 
 			var resultErr string
 
+			passwordHashed := endpoint.NewHashHex(tt.inPassword)
+
 			db, dbMock, err := sqlmock.New()
 			if err != nil {
 				assert.Error(t, err)
@@ -253,14 +255,14 @@ func TestMakeGetUserByUsernameAndPasswordEndpoint(t *testing.T) {
 				}).AddRow(
 				tt.inID,
 				tt.inUsername,
-				tt.inPassword,
+				passwordHashed,
 				tt.inEmail,
 			)
 
 			dbMock.ExpectQuery("^SELECT id, username, password, email FROM users").
-				WithArgs(tt.inUsername, tt.inPassword).WillReturnRows(rows)
+				WithArgs(tt.inUsername, passwordHashed).WillReturnRows(rows)
 
-			r, err := myendpoint.MakeGetUserByUsernameAndPasswordEndpoint(svc)(
+			r, err := endpoint.MakeGetUserByUsernameAndPasswordEndpoint(svc)(
 				context.TODO(),
 				tt.inRequest,
 			)
@@ -344,7 +346,7 @@ func TestGetIDByUsernameEndpoint(t *testing.T) {
 
 			dbMock.ExpectQuery("^SELECT id FROM users").WithArgs(tt.inUsername).WillReturnRows(rows)
 
-			r, err := myendpoint.MakeGetIDByUsernameEndpoint(svc)(context.TODO(), tt.inRequest)
+			r, err := endpoint.MakeGetIDByUsernameEndpoint(svc)(context.TODO(), tt.inRequest)
 			if err != nil {
 				resultErr = err.Error()
 			}
@@ -412,6 +414,8 @@ func TestMakeInsertUserEndpoint(t *testing.T) {
 
 			var resultErr string
 
+			passwordHashed := endpoint.NewHashHex(tt.inPassword)
+
 			db, dbMock, err := sqlmock.New()
 			if err != nil {
 				assert.Error(t, err)
@@ -427,11 +431,11 @@ func TestMakeInsertUserEndpoint(t *testing.T) {
 			dbMock.ExpectExec("^INSERT INTO users").
 				WithArgs(
 					tt.inUsername,
-					tt.inPassword,
+					passwordHashed,
 					tt.inEmail,
 				).WillReturnResult(sqlmock.NewResult(0, 1))
 
-			r, err := myendpoint.MakeInsertUserEndpoint(svc)(context.TODO(), tt.inRequest)
+			r, err := endpoint.MakeInsertUserEndpoint(svc)(context.TODO(), tt.inRequest)
 			if err != nil {
 				resultErr = err.Error()
 			}
@@ -508,7 +512,7 @@ func TestMakeDeleteUserEndpoint(t *testing.T) {
 			dbMock.ExpectExec("^DELETE FROM users").
 				WithArgs(tt.inID).WillReturnResult(sqlmock.NewResult(0, 1))
 
-			r, err := myendpoint.MakeDeleteUserEndpoint(svc)(context.TODO(), tt.inRequest)
+			r, err := endpoint.MakeDeleteUserEndpoint(svc)(context.TODO(), tt.inRequest)
 			if err != nil {
 				resultErr = err.Error()
 			}
