@@ -33,32 +33,32 @@ func LoadEnv() (err error) {
 		return fmt.Errorf("error to set env:%w", err)
 	}
 
-	err = os.Setenv("DB_HOST", "7070")
+	err = os.Setenv("DB_HOST", "localhost")
 	if err != nil {
 		return fmt.Errorf("error to set env:%w", err)
 	}
 
-	err = os.Setenv("DB_PORT", "7070")
+	err = os.Setenv("DB_PORT", "5431")
 	if err != nil {
 		return fmt.Errorf("error to set env:%w", err)
 	}
 
-	err = os.Setenv("DB_USERNAME", "7070")
+	err = os.Setenv("DB_USERNAME", "cfabrica46")
 	if err != nil {
 		return fmt.Errorf("error to set env:%w", err)
 	}
 
-	err = os.Setenv("DB_PASSWORD", "7070")
+	err = os.Setenv("DB_PASSWORD", "01234")
 	if err != nil {
 		return fmt.Errorf("error to set env:%w", err)
 	}
 
-	err = os.Setenv("DB_NAME", "7070")
+	err = os.Setenv("DB_NAME", "go_crud")
 	if err != nil {
 		return fmt.Errorf("error to set env:%w", err)
 	}
 
-	err = os.Setenv("DB_SSLMODE", "7070")
+	err = os.Setenv("DB_SSLMODE", "disable")
 	if err != nil {
 		return fmt.Errorf("error to set env:%w", err)
 	}

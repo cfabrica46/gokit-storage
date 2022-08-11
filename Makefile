@@ -1,3 +1,10 @@
+BUILDPATH=$(CURDIR)
+API_NAME=storage
+
+build: 
+	@echo "Creating Binary ..."
+	@go build -ldflags '-s -w' -o $(BUILDPATH)/build/bin/${API_NAME} cmd/main.go
+	@echo "Binary generated in build/bin/${API_NAME}"
 test:
 	@echo "Running tests database-app..."
 	go test ./... --cover

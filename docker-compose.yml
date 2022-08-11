@@ -9,12 +9,13 @@ services:
         ports:
             - "5433:5432"
         volumes:
-            - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+            - ./ias/init.sql:/docker-entrypoint-initdb.d/init.sql
 
-    db-app:
+    storage:
         build: .
         restart: always
         environment:
+            - DOCKER=true
             - PORT=7070
             - DB_HOST=postgres
             - DB_PORT=5432
@@ -22,7 +23,6 @@ services:
             - DB_PASSWORD=01234
             - DB_NAME=go_crud
             - DB_SSLMODE=disable
-            - DB_DRIVER=postgres
         depends_on:
             - postgres
         ports:
