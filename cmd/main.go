@@ -2,11 +2,11 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 
+	"storage/cmd/config"
 	"storage/internal/endpoint"
 	"storage/internal/entity"
 	"storage/internal/service"
@@ -14,7 +14,6 @@ import (
 
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
-	"github.com/joho/godotenv"
 
 	_ "github.com/lib/pq"
 )
@@ -22,23 +21,15 @@ import (
 func main() {
 	log.SetFlags(log.Lshortfile)
 
-	if err := godotenv.Load(".env"); err != nil {
-		log.Println(err)
+	if !config.VerifyIsDockerRun() {
+		if err := config.LoadEnv(); err != nil {
+			log.Fatal(err)
+		}
 	}
 
-	dbInfo := fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_PORT"),
-		os.Getenv("DB_USERNAME"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_NAME"),
-		os.Getenv("DB_SSLMODE"),
-	)
+	dbInfo := config.GetDBInfo()
 
-	fmt.Println(dbInfo)
-
-	db, err := sql.Open(os.Getenv("DB_DRIVER"), dbInfo)
+	db, err := sql.Open(config.DBDriver, dbInfo)
 	if err != nil {
 		log.Println(err)
 
