@@ -1,67 +1,92 @@
 package config
 
 import (
-	"fmt"
-	"os"
+	"time"
+
+	apiconfig "github.com/cfabrica46/api-config"
 )
 
-const (
-	DBDriver = "postgres"
-)
-
-func VerifyIsDockerRun() (check bool) {
-	isDocker := os.Getenv("DOCKER")
-
-	return isDocker == "true"
+func configEntries() []apiconfig.ConfigEntry {
+	return []apiconfig.ConfigEntry{
+		{
+			VariableName: "port",
+			Description:  "Puerto a utilizar",
+			Shortcut:     "p",
+			DefaultValue: ":8080",
+		},
+		{
+			VariableName: "timeout",
+			Description:  "timeout por defecto ",
+			DefaultValue: 30,
+		},
+		{
+			VariableName: "uri_prefix",
+			Description:  "Prefijo de URL con version",
+			DefaultValue: "",
+		},
+		{
+			VariableName: "database_user",
+			Description:  "Usuario DB",
+			DefaultValue: "cfabrica46",
+		},
+		{
+			VariableName: "database_pass",
+			Description:  "Password DB",
+			DefaultValue: "abcd",
+		},
+		{
+			VariableName: "database_host",
+			Description:  "Direccion IPV4",
+			DefaultValue: "localhost",
+		},
+		{
+			VariableName: "database_port",
+			Description:  "PORT TCP",
+			DefaultValue: "5432",
+		},
+		{
+			VariableName: "database_name",
+			Description:  "Name DB",
+			DefaultValue: "gokit_app_storage",
+		},
+	}
 }
 
-func GetDBInfo() (dbInfo string) {
-	return fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_PORT"),
-		os.Getenv("DB_USERNAME"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_NAME"),
-		os.Getenv("DB_SSLMODE"),
-	)
+type APIConfig struct {
+	*apiconfig.CfgBase
+	DBConfig DBConfig
 }
 
-func LoadEnv() (err error) {
-	err = os.Setenv("PORT", "7070")
+type DBConfig struct {
+	Host     string
+	Port     string
+	User     string
+	Password string
+	DBName   string
+}
+
+func GetAPIConfig() (*APIConfig, error) {
+	typeResolver := apiconfig.NewVariableTypeResolver()
+	flagConfigurator := apiconfig.NewFlagConfigurator(typeResolver)
+	configurator := apiconfig.NewConfigurator(flagConfigurator, typeResolver)
+
+	cfg, err := configurator.Configure(configEntries())
 	if err != nil {
-		return fmt.Errorf("error to set env:%w", err)
+		return nil, err
 	}
 
-	err = os.Setenv("DB_HOST", "localhost")
-	if err != nil {
-		return fmt.Errorf("error to set env:%w", err)
-	}
-
-	err = os.Setenv("DB_PORT", "5431")
-	if err != nil {
-		return fmt.Errorf("error to set env:%w", err)
-	}
-
-	err = os.Setenv("DB_USERNAME", "cfabrica46")
-	if err != nil {
-		return fmt.Errorf("error to set env:%w", err)
-	}
-
-	err = os.Setenv("DB_PASSWORD", "01234")
-	if err != nil {
-		return fmt.Errorf("error to set env:%w", err)
-	}
-
-	err = os.Setenv("DB_NAME", "go_crud")
-	if err != nil {
-		return fmt.Errorf("error to set env:%w", err)
-	}
-
-	err = os.Setenv("DB_SSLMODE", "disable")
-	if err != nil {
-		return fmt.Errorf("error to set env:%w", err)
-	}
-
-	return nil
+	return &APIConfig{
+		CfgBase: &apiconfig.CfgBase{
+			Port:      cfg["port"].(string),
+			Timeout:   time.Duration(cfg["timeout"].(int)) * time.Second,
+			URIPrefix: cfg["uri_prefix"].(string),
+		},
+		DBConfig: DBConfig{
+			Host:     cfg["database_host"].(string),
+			Port:     cfg["database_port"].(string),
+			User:     cfg["database_user"].(string),
+			Password: cfg["database_pass"].(string),
+			DBName:   cfg["database_name"].(string),
+		},
+	}, nil
 }

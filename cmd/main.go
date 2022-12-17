@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -19,32 +20,18 @@ import (
 )
 
 func main() {
-	log.SetFlags(log.Lshortfile)
-
-	if !config.VerifyIsDockerRun() {
-		if err := config.LoadEnv(); err != nil {
-			log.Fatal(err)
-		}
+	cfg, err := config.GetAPIConfig()
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	dbInfo := config.GetDBInfo()
-
-	db, err := sql.Open(config.DBDriver, dbInfo)
+	db, err := openPostgresConn(cfg.DBConfig)
 	if err != nil {
-		log.Println(err)
-
-		return
+		log.Fatal(err)
 	}
 	defer db.Close()
 
-	err = db.Ping()
-	if err != nil {
-		log.Println(err)
-
-		return
-	}
-
-	runServer(os.Getenv("PORT"), db)
+	runServer(cfg.Port, db)
 }
 
 func runServer(port string, db *sql.DB) {
@@ -97,4 +84,27 @@ func runServer(port string, db *sql.DB) {
 
 	log.Println("ListenAndServe on localhost:" + os.Getenv("PORT"))
 	log.Println(http.ListenAndServe(":"+port, router))
+}
+
+func openPostgresConn(conn config.DBConfig) (*sql.DB, error) {
+	psqlInfo := fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		conn.Host,
+		conn.Port,
+		conn.User,
+		conn.Password,
+		conn.DBName,
+	)
+
+	db, err := sql.Open("postgres", psqlInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.Ping()
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
 }

@@ -1,11 +1,11 @@
 # GetAllUsers
-# curl -XGET localhost:7070/users
+sudo curl -XGET localhost:7070/users
 
 # GetUserByID
 # curl -XGET -d'{"id":1}' localhost:7070/user/id
 
 # GetUserByUsernameAndPassword
-curl -XGET -d'{"username":"cesar","password":"01234"}' localhost:7070/user/username_password
+# curl -XGET -d'{"username":"cesar","password":"01234"}' localhost:7070/user/username_password
 
 # GetIDByUsername
 # curl -XGET -d'{"username":"cesar"}' localhost:7070/id/username
