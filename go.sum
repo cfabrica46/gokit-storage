@@ -43,6 +43,8 @@ github.com/DATA-DOG/go-sqlmock v1.5.0/go.mod h1:f/Ixk793poVmq4qj/V1dPUg2JEAKC73Q
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/cfabrica46/api-config v0.0.0-20221217025153-aad550912830 h1:bi/CD1e+ifSDTcDWmbhbUSe9U/XA7fwkffcGH8d25t8=
 github.com/cfabrica46/api-config v0.0.0-20221217025153-aad550912830/go.mod h1:VDx0b/nZYXrqP+K/J9tMgVYV/bNJTYmAzItqaETGJNQ=
+github.com/cfabrica46/api-config v0.0.0-20221217030819-af5a9523a928 h1:GxpoFFGjcw7SSncep7RFXFhXDFMeASffdDKz6poUdkM=
+github.com/cfabrica46/api-config v0.0.0-20221217030819-af5a9523a928/go.mod h1:VDx0b/nZYXrqP+K/J9tMgVYV/bNJTYmAzItqaETGJNQ=
 github.com/chzyer/logex v1.1.10/go.mod h1:+Ywpsq7O8HXn0nuIou7OrIPyXbp3wmkHB+jjWRnGsAI=
 github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e/go.mod h1:nSuG5e5PlCu98SY8svDHJxuZscDgtXS6KTTbou5AhLI=
 github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1/go.mod h1:Q3SI9o4m/ZMnBNeIyt5eFwwo7qiLfzFZmjNmxjkiQlU=

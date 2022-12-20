@@ -15,14 +15,12 @@ services:
         build: .
         restart: always
         environment:
-            - DOCKER=true
             - PORT=7070
-            - DB_HOST=postgres
-            - DB_PORT=5432
-            - DB_USERNAME=cfabrica46
-            - DB_PASSWORD=01234
-            - DB_NAME=go_crud
-            - DB_SSLMODE=disable
+            - DATABASE_HOST=postgres
+            - DATABASE_PORT=5432
+            - DATABASE_USER=cfabrica46
+            - DATABASE_PASS=abcd
+            - DATABASE_NAME=go_crud
         depends_on:
             - postgres
         ports:

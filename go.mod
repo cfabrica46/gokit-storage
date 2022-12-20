@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
-	github.com/cfabrica46/api-config v0.0.0-20221217025153-aad550912830
+	github.com/cfabrica46/api-config v0.0.0-20221217030819-af5a9523a928
 	github.com/go-kit/kit v0.12.0
 	github.com/gorilla/mux v1.8.0
 	github.com/lib/pq v1.10.7
